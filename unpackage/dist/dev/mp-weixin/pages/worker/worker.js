@@ -220,6 +220,13 @@ __webpack_require__.r(__webpack_exports__);
 
 
 
+
+
+
+
+
+
+
 var _image = __webpack_require__(/*! ../../utils/image.js */ 18); //
 //
 //
@@ -272,8 +279,17 @@ var _image = __webpack_require__(/*! ../../utils/image.js */ 18); //
 //
 //
 //
-var _default = { data: function data() {return { tips: '欢迎~', elements: [], test: [{ title: '白石龙', name: '地铁站', color: 'cyan' }, { title: '上梅林', name: '地铁站', color: 'cyan' }, { title: '理想时代大厦', name: '办公楼', color: 'cyan' }, { title: '白石龙一区', name: '场所码', color: 'cyan' }], showImg: false, showImgUrl: '', messageText: "" };}, onShow: function onShow() {this.load();}, methods: { load: function load() {var _this = this;uni.request({ url: 'https://tools-api.siammm.cn/images/get_all', //仅为示例，并非真实接口地址。
-        data: { openid: uni.getStorageSync("openid") }, method: "POST", success: function success(res) {if (res.data.code != 200) {_this.messageText = res.data.msg || "网络繁忙...";_this.$refs.popup.open();} else {_this.elements = res.data.data.list;_this.tips = res.data.data.tips;}} });
+//
+//
+//
+//
+//
+//
+//
+var _default = { data: function data() {return { tips: '欢迎~', isLongTap: false, nowDoId: null, elements: [], test: [{ title: '白石龙', name: '地铁站', color: 'cyan' }, { title: '上梅林', name: '地铁站', color: 'cyan' }, { title: '理想时代大厦', name: '办公楼', color: 'cyan' }, { title: '白石龙一区', name: '场所码', color: 'cyan' }], showImg: false, showImgUrl: '', messageText: "", share: { title: '首页', path: '/pages/worker/worker', imageUrl: '', desc: '', content: '' } };}, onShow: function onShow() {this.load();}, methods: { load: function load() {var _this = this;uni.request({ url: 'https://tools-api.siammm.cn/images/get_all', //仅为示例，并非真实接口地址。
+        data: { openid: uni.getStorageSync("openid") }, method: "POST", success: function success(res) {if (res.data.code != 200) {_this.messageText = res.data.msg || "网络繁忙...";_this.$refs.popup.open();} else {_this.elements = res.data.data.list;_this.tips = res.data.data.tips;
+          }
+        } });
 
     },
     add: function add() {
@@ -289,6 +305,10 @@ var _default = { data: function data() {return { tips: '欢迎~', elements: [], 
 
     },
     ViewImage: function ViewImage(e) {
+      if (this.isLongTap) {
+        this.isLongTap = false;
+        return;
+      }
       this.showImg = true;
       this.showImgUrl = e.currentTarget.dataset.url;
       return;
@@ -303,7 +323,79 @@ var _default = { data: function data() {return { tips: '欢迎~', elements: [], 
     closeDailog: function closeDailog()
     {
       this.$refs.popup.close();
-    } } };exports.default = _default;
+    },
+    closeLongTapDailog: function closeLongTapDailog() {
+      this.$refs.longTap.close();
+    },
+    confirmLongTap: function confirmLongTap(e) {
+      var _this = this;
+      uni.request({
+        url: 'https://tools-api.siammm.cn/images/delete', //仅为示例，并非真实接口地址。
+        data: {
+          openid: uni.getStorageSync("openid"),
+          image_id: _this.nowDoId },
+
+        method: "POST",
+        success: function success(res) {
+          _this.$refs.longTap.close();
+          if (res.data.code != 200) {
+            _this.messageText = res.data.msg || "网络繁忙...";
+            _this.$refs.popup.open();
+          } else {
+            _this.load();
+          }
+        } });
+
+    },
+    longTap: function longTap(e)
+    {
+      this.$refs.longTap.open();
+      this.isLongTap = true;
+      this.nowDoId = e.currentTarget.dataset.id;
+    } },
+
+  //分享到朋友或群
+  onShareAppMessage: function onShareAppMessage(res) {
+    return {
+      title: this.share.title,
+      path: this.share.path,
+      imageUrl: this.share.imageUrl,
+      desc: this.share.desc,
+      content: this.share.content,
+      success: function success(res) {
+        uni.showToast({
+          title: '分享成功' });
+
+      },
+      fail: function fail(res) {
+        uni.showToast({
+          title: '分享失败',
+          icon: 'none' });
+
+      } };
+
+  },
+  //分享到朋友圈
+  onShareTimeline: function onShareTimeline(res) {
+    return {
+      title: this.share.title,
+      path: this.share.path,
+      imageUrl: this.share.imageUrl,
+      desc: this.share.desc,
+      content: this.share.content,
+      success: function success(res) {
+        uni.showToast({
+          title: '分享成功' });
+
+      },
+      fail: function fail(res) {
+        uni.showToast({
+          title: '分享失败',
+          icon: 'none' });
+
+      } };
+
+  } };exports.default = _default;
 /* WEBPACK VAR INJECTION */}.call(this, __webpack_require__(/*! ./node_modules/@dcloudio/uni-mp-weixin/dist/index.js */ 1)["default"]))
 
 /***/ })

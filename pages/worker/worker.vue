@@ -18,7 +18,9 @@
 			<view class="nav-list">
 				<view class="nav-li" 
 					@tap="ViewImage"
+					@longtap.stop="longTap"
 					:data-url="item.path"
+					:data-id="item.id"
 					:class="'bg-'+item.color" 
 					:style="[{animation: 'show ' + ((index+1)*0.2+1) + 's 1'}]"
 					v-for="(item,index) in elements" :key="index">
@@ -48,6 +50,11 @@
 		<uni-popup ref="popup" type="dialog">
 			<uni-popup-dialog mode="base" :content="messageText" :duration="2000" :before-close="true" @close="closeDailog" @confirm="closeDailog"></uni-popup-dialog>
 		</uni-popup>
+		
+		
+		<uni-popup ref="longTap" type="dialog">
+			<uni-popup-dialog mode="base" content="要删除掉吗?" :duration="2000" :before-close="true" @close="closeLongTapDailog" @confirm="confirmLongTap"></uni-popup-dialog>
+		</uni-popup>
 	</view>
 </template>
 <script>
@@ -61,6 +68,8 @@
 		data() {
 			return {
 				tips:'欢迎~',
+				isLongTap:false,
+				nowDoId:null,
 				elements: [],
 				test:[{
 					title: '白石龙',
@@ -82,6 +91,13 @@
 				showImg:false,
 				showImgUrl:'',
 				messageText:"",
+				share:{
+					title:'首页',
+					path:'/pages/worker/worker',
+					imageUrl:'',
+					desc:'',
+					content:'',
+				}
 			}
 		},
 		onShow: function() {
@@ -120,6 +136,10 @@
 				});
 			},
 			ViewImage(e) {
+				if (this.isLongTap){
+					this.isLongTap = false;
+					return ;
+				}
 				this.showImg = true;
 				this.showImgUrl = e.currentTarget.dataset.url
 				 return ;
@@ -134,8 +154,79 @@
 			closeDailog()
 			{
 				this.$refs.popup.close()
+			},
+			closeLongTapDailog(){
+				this.$refs.longTap.close()
+			},
+			confirmLongTap(e){
+				let _this = this;
+				uni.request({
+				    url: 'https://tools-api.siammm.cn/images/delete', //仅为示例，并非真实接口地址。
+				    data: {
+						openid:uni.getStorageSync("openid"),
+						image_id: _this.nowDoId
+				    },
+					method:"POST",
+				    success: (res) => {
+						_this.$refs.longTap.close()
+						if (res.data.code != 200){
+							_this.messageText = res.data.msg || "网络繁忙...";
+							_this.$refs.popup.open();
+						}else{
+							_this.load();
+						}
+				    }
+				});
+			},
+			longTap(e)
+			{
+				this.$refs.longTap.open()
+				this.isLongTap = true;
+				this.nowDoId = e.currentTarget.dataset.id;
 			}
-		}
+		},
+		//分享到朋友或群
+		    onShareAppMessage(res) {
+		        return {
+		            title:this.share.title,
+		            path:this.share.path,
+		            imageUrl:this.share.imageUrl,
+		            desc:this.share.desc,
+		            content:this.share.content,
+		            success(res){
+		                uni.showToast({
+		                    title:'分享成功'
+		                })
+		            },
+		            fail(res){
+		                uni.showToast({
+		                    title:'分享失败',
+		                    icon:'none'
+		                })
+		            }
+		        }
+		    },
+		    //分享到朋友圈
+		    onShareTimeline(res) {
+		        return {
+		            title:this.share.title,
+		            path:this.share.path,
+		            imageUrl:this.share.imageUrl,
+		            desc:this.share.desc,
+		            content:this.share.content,
+		            success(res) {
+		                uni.showToast({
+		                    title: '分享成功'
+		                })
+		            },
+		            fail(res) {
+		                uni.showToast({
+		                    title: '分享失败',
+		                    icon: 'none'
+		                })
+		            }
+		        }
+		    },
 	}
 </script>
 
